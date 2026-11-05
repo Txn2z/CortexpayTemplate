@@ -90,24 +90,16 @@ Lalu buka `http://localhost:3000`.
 
 ## Cara Kerja
 
-```mermaid
-sequenceDiagram
-    participant U as Pembeli
-    participant A as Halaman (app.js)
-    participant C as CortexPay API
+<p align="center">
+  <img src="docs/flow.svg" alt="Alur pembayaran: buat transaksi, tampil QRIS, pembeli bayar, konfirmasi" width="100%">
+</p>
 
-    U->>A: Isi nominal, klik "Buat QRIS"
-    A->>C: POST /pay/v1/create
-    C-->>A: qris_payload + status pending
-    A->>U: Tampilkan QR code
-    loop tiap 3 detik
-        A->>C: GET /pay/v1/{external_id}
-        C-->>A: status
-    end
-    U->>C: Scan dan bayar
-    C-->>A: status paid
-    A->>U: Notifikasi "Pembayaran Berhasil"
-```
+| Langkah | Proses | Detail |
+|:---:|---|---|
+| 1 | Buat transaksi | Pembeli isi nominal, lalu halaman mengirim `POST /pay/v1/create` |
+| 2 | Tampil QRIS | API membalas `qris_payload`, QR code langsung dirender |
+| 3 | Pembeli bayar | Scan QR dari e-wallet atau m-banking apa pun yang mendukung QRIS |
+| 4 | Konfirmasi | Halaman cek `GET /pay/v1/{external_id}` tiap 3 detik sampai status `paid` |
 
 ### Langkah pemakaian
 
@@ -219,6 +211,8 @@ cortexpay-integration-template/
 ├── index.html     # Halaman utama
 ├── styles.css     # Tampilan
 ├── app.js         # Logic dan integrasi API
+├── docs/
+│   └── flow.svg   # Diagram alur untuk README
 └── README.md      # Dokumentasi
 ```
 
@@ -314,7 +308,12 @@ Response:
 }
 ```
 
-Nilai `status` yang mungkin: `pending`, `paid`, `expired`, `cancelled`.
+| Status | Arti |
+|---|---|
+| `pending` | Menunggu pembayaran |
+| `paid` | Pembayaran berhasil |
+| `expired` | QRIS sudah kedaluwarsa |
+| `cancelled` | Transaksi dibatalkan |
 
 ## Troubleshooting
 
